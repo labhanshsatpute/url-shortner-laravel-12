@@ -114,4 +114,17 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Default Admin Credentials
+    |--------------------------------------------------------------------------
+    */
+
+
+    'admin' => [
+        'name' => env('DEFAULT_ADMIN_NAME', 'Admin'),
+        'email' => env('DEFAULT_ADMIN_EMAIL', 'mail@example.com'),
+        'password' => env('DEFAULT_ADMIN_PASSWORD', '12345678'),
+    ],
+
 ];
