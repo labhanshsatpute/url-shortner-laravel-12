@@ -20,7 +20,7 @@ class ShortUrlController extends Controller
         $user = User::find(Auth::id());
 
         if ($user->hasPermissionTo(ShortUrlPermission::VIEW_ALL_SHORT_URLS->value)) {
-            $short_urls = ShortUrl::all();
+            $short_urls = ShortUrl::with(['user', 'company'])->paginate(10);
             
             return view('pages.short-url.list', [
                 'short_urls' => $short_urls,
@@ -41,7 +41,7 @@ class ShortUrlController extends Controller
                     ->where('user_id', $user->id);
             })
                 ->with(['user'])
-                ->get();
+                ->paginate(10);
 
             return view('pages.short-url.list', [
                 'short_urls' => $short_urls,
@@ -57,7 +57,7 @@ class ShortUrlController extends Controller
             
             $companies = $records->pluck('company')->unique('id')->values();
 
-            $short_urls = ShortUrl::where('user_id',$user->id)->get();
+            $short_urls = ShortUrl::where('user_id',$user->id)->paginate(10);
             
             return view('pages.short-url.list', [
                 'short_urls' => $short_urls,

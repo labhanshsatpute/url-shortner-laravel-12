@@ -56,6 +56,8 @@
                     <th>Original URL</th>
                     <th>Short URL</th>
                     <th>Hits</th>
+                    <th>Company</th>
+                    <th>Created By</th>
                     <th>Created At</th>
                 </tr>
             </thead>
@@ -65,11 +67,16 @@
                         <td>{{ $short_url->original_url }}</td>
                         <td><a target="_blank" href="{{ route('check.short-url',['short_url_code' => $short_url->short_url_code]) }}">{{ route('check.short-url',['short_url_code' => $short_url->short_url_code]) }}</a></td>
                         <td>{{ $short_url->hit_count }}</td>
+                        <td>{{ $short_url->company->name }}</td>
+                        <td>{{ $short_url->user->name }}</td>
                         <td>{{ date('D d M Y h:i A', strtotime($short_url->created_at)) }}</td>
                     </tr>
                 @endforeach
             </tbody>
         </table>
+        <div>
+            {{ $short_urls->links() }}
+        </div>
     </div>
 </section>
 @endsection

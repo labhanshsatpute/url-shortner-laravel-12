@@ -26,7 +26,7 @@ class InviteController extends Controller
         $user = User::find(Auth::id());
 
         if ($user->hasPermissionTo(UserPermission::VIEW_ALL_COMPANY_USERS->value)) {
-            $users = User::all();
+            $users = User::with(['companies', 'short_urls'])->paginate(10);
             $companies = Company::all();
             $roles = Role::all();
             
@@ -39,18 +39,15 @@ class InviteController extends Controller
 
         if ($user->hasPermissionTo(UserPermission::VIEW_SELF_COMPANY_USERS->value)) {
 
-            $records = CompanyUserMapping::whereIn('company_id', function ($query) use ($user) {
-                $query->select('company_id')
-                    ->from('company_user_mappings')
-                    ->where('user_id', $user->id);
-            })
-            ->with(['user', 'company'])
-            ->get();
+            $company_ids = CompanyUserMapping::where('user_id', $user->id)
+            ->pluck('company_id');
 
+            $companies = Company::whereIn('id', $company_ids)->get();
             $roles = Role::whereIn('name', ['Admin', 'Member'])->get();
 
-            $users = $records->pluck('user')->unique('id')->values();
-            $companies = $records->pluck('company')->unique('id')->values();
+            $users = User::whereHas('company_mappings', function ($query) use ($company_ids) {
+                $query->whereIn('company_id', $company_ids);
+            })->with(['companies', 'short_urls'])->paginate(10);
 
             return view('pages.users.list', [
                 'users' => $users,

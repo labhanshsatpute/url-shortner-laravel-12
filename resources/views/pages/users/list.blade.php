@@ -66,6 +66,9 @@
                 <tr>
                     <th>Name</th>
                     <th>Email</th>
+                    <th>Role</th>
+                    <th>Company</th>
+                    <th>Short URL Count</th>
                     <th>Created At</th>
                 </tr>
             </thead>
@@ -74,11 +77,17 @@
                     <tr>
                         <td>{{ $user->name }}</td>
                         <td>{{ $user->email }}</td>
+                        <td>{{ $user->roles->pluck('name')->implode(', ') }}</td>
+                        <td>{{ $user->companies->pluck('name')->implode(', ') }}</td>
+                        <td>{{ count($user->short_urls) }}</td>
                         <td>{{ date('D d M Y h:i A', strtotime($user->created_at)) }}</td>
                     </tr>
                 @endforeach
             </tbody>
         </table>
+        <div>
+            {{ $users->links() }}
+        </div>
     </div>
 </section>
 @endsection
