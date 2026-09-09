@@ -1,5 +1,7 @@
 <?php
 
+namespace App\Traits;
+
 trait ShortUrlCodeGenerator
 {
     public function generateShortUrlCode($length = 6)
@@ -10,6 +12,8 @@ trait ShortUrlCodeGenerator
         for ($i = 0; $i < $length; $i++) {
             $short_url_code .= $characters[rand(0, $characters_length - 1)];
         }
-        return $short_url_code;
+
+        $this->short_url_code = $short_url_code;
+        $this->save();
     }
 }

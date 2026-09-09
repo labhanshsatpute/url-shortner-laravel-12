@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignUuid('company_id')->references('id')->on('companies');
             $table->text('original_url');
             $table->string('short_url_code')->unique();
+            $table->bigInteger('hit_count')->default(0);
             $table->timestamps();
             $table->softDeletes();
         });

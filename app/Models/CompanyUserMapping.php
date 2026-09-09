@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class CompanyUserMapping extends Model
 {
-    use HasUuids, SoftDeletes;
+    use HasUuids;
 
     public function user(): BelongsTo
     {

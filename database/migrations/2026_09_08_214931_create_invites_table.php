@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('invites', function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->string('name');
             $table->string('email');
             $table->string('token')->unique();
             $table->timestamp('expires_at');

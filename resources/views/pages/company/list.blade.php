@@ -44,15 +44,13 @@
                 <tr>
                     <th>Name</th>
                     <th>Created At</th>
-                    <th>Updated At</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach ($companies as $company)
                     <tr>
                         <td>{{ $company->name }}</td>
-                        <td>{{ $company->created_at }}</td>
-                        <td>{{ $company->updated_at }}</td>
+                        <td>{{ date('D d M Y h:i A', strtotime($company->created_at)) }}</td>
                     </tr>
                 @endforeach
             </tbody>

@@ -40,6 +40,7 @@ class RolePermissionSeeder extends Seeder
         $super_admin_permissions = Permission::whereIn('name', array_merge(
             UserPermission::values(), 
             CompanyPermission::values(),
+            [ShortUrlPermission::VIEW_ALL_SHORT_URLS->value,]
         ))->get();
 
         $admin_permissions = Permission::whereIn('name', [

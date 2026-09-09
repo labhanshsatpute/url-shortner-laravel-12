@@ -10,6 +10,7 @@ use Exception;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\View\View;
@@ -66,11 +67,11 @@ class AuthController extends Controller
         }
 
         if ($invite->expires_at->isPast()) {
-            return abort(404, 'Invite not found.');
+            return abort(404, 'Invite Expired');
         }
 
         if (User::where('email', $invite->email)->exists()) {
-            return abort(404, 'Invite not found.');
+            return redirect()->route('view.invite.request',['token' => $token]);
         }
 
         return view('pages.auth.invite-register', [
@@ -81,6 +82,7 @@ class AuthController extends Controller
     // Handle Register From Invite
     public function handleRegisterFromInvite(Request $request, $token): RedirectResponse 
     {
+        DB::beginTransaction();
         try {
 
             $validator = Validator::make($request->all(),[
@@ -90,7 +92,6 @@ class AuthController extends Controller
             ]);
 
             if ($validator->fails()) {
-            dd($validator->errors());
                 return redirect()->back()->withErrors($validator)->withInput();
             }
 
@@ -112,12 +113,17 @@ class AuthController extends Controller
 
             Auth::login($user);
 
+            $invite->delete();
+
+            DB::commit();
+
             return redirect()->route('view.dashboard')->with('message',[
                 'status' => 'success',
                 'message' => 'Registred successfully'
             ]);
             
         } catch (Exception $exception) {
+            DB::rollBack();
             return redirect()->back()->with('message', [
                 'status' => 'error',
                 'message' => $exception->getMessage()

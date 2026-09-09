@@ -6,12 +6,12 @@
                     {{ session('message')['message'] }}
                 </div>
                 @break
-            @case('danger'):
+            @case('error')
                 <div class="alert alert-danger">
                     {{ session('message')['message'] }}
                 </div>
                 @break
-            @case('warning'):
+            @case('warning')
                 <div class="alert alert-warning">
                     {{ session('message')['message'] }}
                 </div>

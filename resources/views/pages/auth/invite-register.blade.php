@@ -42,7 +42,7 @@
     <h1 class="h3 mb-3 fw-normal">Register from invite</h1>
     <div class="mb-2">
       <label class="form-label">Name</label>
-      <input type="text" name="name" value="{{ old('name') }}" class="form-control" placeholder="Your name">
+      <input type="text" name="name" value="{{ old('name', $invite->name) }}" class="form-control" placeholder="Your name">
       @error('name')
       <div class="text-danger">{{ $message }}</div>
       @enderror
