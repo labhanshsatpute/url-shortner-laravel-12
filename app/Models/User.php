@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -52,15 +53,9 @@ class User extends Authenticatable
         ];
     }
 
-    public function companies(): BelongsToMany
+    public function company(): HasOne
     {
-        return $this->belongsToMany(Company::class, 'company_user_mappings')
-            ->withTimestamps();
-    }
-
-    public function company_mappings(): HasMany
-    {
-        return $this->hasMany(CompanyUserMapping::class);
+        return $this->hasOne(Company::class, 'id', 'company_id');
     }
 
     public function short_urls(): HasMany

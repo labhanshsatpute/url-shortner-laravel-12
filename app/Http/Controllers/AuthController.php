@@ -100,17 +100,13 @@ class AuthController extends Controller
             $role = Role::where('id', $invite->role_id)->first();
 
             $user = new User();
+            $user->company_id = $invite->company_id;
             $user->name = $request->input('name');
             $user->email = $invite->email;
             $user->password = Hash::make($request->input('password'));
             $user->save();
             $user->assignRole($role);
-
-            $user_company_mapping = new CompanyUserMapping();
-            $user_company_mapping->user_id = $user->id;
-            $user_company_mapping->company_id = $invite->company_id;
-            $user_company_mapping->save();
-
+            
             Auth::login($user);
 
             $invite->delete();

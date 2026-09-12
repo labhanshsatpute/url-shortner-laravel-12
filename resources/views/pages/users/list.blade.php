@@ -28,6 +28,7 @@
                 @endforeach
             </select>
         </div>
+        @if (isset($companies))
         <div class="mb-3">
           <label for="company_id" class="form-label">Company</label>
             <select class="form-select" name="company_id" required>
@@ -37,6 +38,8 @@
                 @endforeach
             </select>
         </div>
+        @endif
+        
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -78,7 +81,7 @@
                         <td>{{ $user->name }}</td>
                         <td>{{ $user->email }}</td>
                         <td>{{ $user->roles->pluck('name')->implode(', ') }}</td>
-                        <td>{{ $user->companies->pluck('name')->implode(', ') }}</td>
+                        <td>{{ $user->company?->name }}</td>
                         <td>{{ count($user->short_urls) }}</td>
                         <td>{{ date('D d M Y h:i A', strtotime($user->created_at)) }}</td>
                     </tr>

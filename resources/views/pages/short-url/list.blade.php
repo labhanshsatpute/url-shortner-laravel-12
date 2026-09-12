@@ -16,14 +16,6 @@
           <label for="original_url" class="form-label">URL</label>
           <input type="url" class="form-control" name="original_url" required>
         </div>
-        <div class="mb-3" @if(count($companies) == 1) hidden @endif>
-          <label for="company_id" class="form-label">Company</label>
-            <select class="form-select" name="company_id" required>
-                @foreach ($companies as $company)
-                    <option value="{{ $company->id }}">{{ $company->name }}</option>
-                @endforeach
-            </select>
-        </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -58,6 +50,7 @@
                     <th>Hits</th>
                     <th>Company</th>
                     <th>Created By</th>
+                    <th>Role</th>
                     <th>Created At</th>
                 </tr>
             </thead>
@@ -69,6 +62,7 @@
                         <td>{{ $short_url->hit_count }}</td>
                         <td>{{ $short_url->company->name }}</td>
                         <td>{{ $short_url->user->name }}</td>
+                        <td>{{ $short_url->user->roles->pluck('name')->join(', ') }}</td>
                         <td>{{ date('D d M Y h:i A', strtotime($short_url->created_at)) }}</td>
                     </tr>
                 @endforeach

@@ -26,7 +26,7 @@ class InviteController extends Controller
         $user = User::find(Auth::id());
 
         if ($user->hasPermissionTo(UserPermission::VIEW_ALL_COMPANY_USERS->value)) {
-            $users = User::with(['companies', 'short_urls'])->paginate(10);
+            $users = User::with(['company', 'short_urls'])->paginate(10);
             $companies = Company::all();
             $roles = Role::all();
             
@@ -38,20 +38,13 @@ class InviteController extends Controller
         }
 
         if ($user->hasPermissionTo(UserPermission::VIEW_SELF_COMPANY_USERS->value)) {
-
-            $company_ids = CompanyUserMapping::where('user_id', $user->id)
-            ->pluck('company_id');
-
-            $companies = Company::whereIn('id', $company_ids)->get();
+            
             $roles = Role::whereIn('name', ['Admin', 'Member'])->get();
 
-            $users = User::whereHas('company_mappings', function ($query) use ($company_ids) {
-                $query->whereIn('company_id', $company_ids);
-            })->with(['companies', 'short_urls'])->paginate(10);
+            $users = User::with(['company', 'short_urls'])->where('company_id', $user->company_id)->paginate(10);
 
             return view('pages.users.list', [
                 'users' => $users,
-                'companies' => $companies,
                 'roles' => $roles,
             ]);
         }
@@ -64,12 +57,17 @@ class InviteController extends Controller
 
         try {
 
-            $validator = Validator::make($request->all(),[
+            $validationRules = [
                 'name' => ['required', 'string', 'min:2', 'max:250'],
                 'email' => ['required', 'string', 'min:2', 'max:250'],
-                'company_id' => ['required', 'string', 'exists:companies,id'],
                 'role_id' => ['required', 'string', 'exists:roles,id'],
-            ]);
+            ];
+
+            if (Auth::user()->roles->first()->name == 'SuperAdmin') {
+                $validationRules['company_id'] = ['required', 'string', 'exists:companies,id'];
+            }
+
+            $validator = Validator::make($request->all(), $validationRules);
 
             if ($validator->fails()) {
                 return redirect()->back()->with('message', [
@@ -77,11 +75,11 @@ class InviteController extends Controller
                     'message' => $validator->errors()->first()
                 ])->withInput();
             }
-
+            
             $invite = new Invite();
             $invite->name = $request->input('name');
             $invite->email = $request->input('email');
-            $invite->company_id = $request->input('company_id');
+            $invite->company_id = (Auth::user()->roles->first()->name == 'SuperAdmin') ? $request->input('company_id') : Auth::user()->company_id;
             $invite->role_id = $request->input('role_id');
             $invite->invited_by = Auth::id();
             $invite->token = bin2hex(random_bytes(16));
@@ -135,10 +133,9 @@ class InviteController extends Controller
             $invite = Invite::where('token', $token)->first();
 
             if ($request->input('status') == InviteStatus::ACCEPT->value) {
-                $user_company_mapping = new CompanyUserMapping();
-                $user_company_mapping->user_id = Auth::id();
-                $user_company_mapping->company_id = $invite->company_id;
-                $user_company_mapping->save();
+                $user = User::find(Auth::id());
+                $user->company_id = $invite->company_id;
+                $user->save();
 
                 $invite->delete();
 

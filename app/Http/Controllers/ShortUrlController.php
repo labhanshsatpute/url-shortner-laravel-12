@@ -4,12 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Enums\Permissions\ShortUrlPermission;
 use App\Models\CompanyUserMapping;
+use App\Models\Role;
 use App\Models\ShortUrl;
 use App\Models\User;
 use Exception;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class ShortUrlController extends Controller
@@ -29,39 +31,28 @@ class ShortUrlController extends Controller
 
         if ($user->hasPermissionTo(ShortUrlPermission::VIEW_COMPANY_SHORT_URL->value)) {
 
-            $records = CompanyUserMapping::where('user_id', $user->id)
-                ->with(['company'])
-                ->get();
-
-            $companies = $records->pluck('company')->unique('id')->values();
-
-            $short_urls = ShortUrl::whereIn('company_id', function ($query) use ($user) {
-                $query->select('company_id')
-                    ->from('company_user_mappings')
-                    ->where('user_id', $user->id);
-            })
-                ->with(['user'])
-                ->paginate(10);
+            $short_urls = ShortUrl::with(['user', 'company'])
+                ->where('company_id', $user->company_id)
+                ->where(function ($query) use ($user) {
+                    $query->where('user_id', $user->id)
+                        ->orWhereHas('user', function ($user_query) {
+                            $user_query->whereHas('roles', function ($role_query) {
+                                $role_query->where('name', 'Member');
+                            });
+                        });
+                })->paginate(10);
 
             return view('pages.short-url.list', [
                 'short_urls' => $short_urls,
-                'companies' => $companies,
             ]);
         }
 
         if ($user->hasPermissionTo(ShortUrlPermission::VIEW_SELF_SHORT_URL->value)) {
 
-            $records = CompanyUserMapping::where('user_id', $user->id)
-                ->with(['company'])
-                ->get();
-            
-            $companies = $records->pluck('company')->unique('id')->values();
-
             $short_urls = ShortUrl::where('user_id',$user->id)->paginate(10);
             
             return view('pages.short-url.list', [
                 'short_urls' => $short_urls,
-                'companies' => $companies,
             ]);
         }
         return abort(403, 'Unauthorized action.');
@@ -74,7 +65,6 @@ class ShortUrlController extends Controller
 
             $validator = Validator::make($request->all(),[
                 'original_url' => ['required', 'string'],
-                'company_id' => ['required', 'string', 'exists:companies,id'],
             ]);
 
             if ($validator->fails()) {
@@ -86,12 +76,11 @@ class ShortUrlController extends Controller
 
             $short_url = new ShortUrl();
             $short_url->user_id = Auth::id();
-            $short_url->company_id = $request->input('company_id');
+            $short_url->company_id = Auth::user()->company_id;
             $short_url->original_url = $request->input('original_url');
             $short_url->generateShortUrlCode();
             $short_url->save();
 
-            
             return redirect()->route('view.all.shorturl')->with('message', [
                 'status' => 'success',
                 'message' => 'Short URL : ' . route('check.short-url',['short_url_code' => $short_url->short_url_code]) 
